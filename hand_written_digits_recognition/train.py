@@ -179,7 +179,7 @@ def main():
     weight_save_dir.mkdir(exist_ok=True)
 
     # 运行训练和测试
-    for epoch in range(1, 6):  # 总共训练5轮
+    for epoch in range(1, 100):  # 总共训练5轮
         train_loss = train(model, device, train_loader, optimizer, epoch, loss_func,writer)
 
         # 写入本轮的loss

@@ -7,7 +7,7 @@ from torch.utils.tensorboard import SummaryWriter
 from mlp import SimpleMLP
 
 # 权重文件
-weight_file = '1708328479_epoch_5.pt'
+weight_file = '1708339063_epoch_55.pt'
 
 # 获取权重文件路径
 current_dir_path = Path(__file__).resolve().parent
@@ -43,7 +43,7 @@ def get_input_data(input_image_dir,img_size):
         img = transform(img)
 
         # 归一
-        img = img.type(torch.float32)/255
+        img = torch.where(img <= 255/2, torch.tensor(0.0), torch.tensor(1.0))
 
         # 灰度翻转
         img = img * -1 + 1
