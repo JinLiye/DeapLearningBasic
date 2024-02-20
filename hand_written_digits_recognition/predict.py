@@ -5,9 +5,10 @@ from torchvision import transforms
 from torch.utils.tensorboard import SummaryWriter
 
 from mlp import SimpleMLP
+from cnn import SimpleCNN,LeNet5
 
 # 权重文件
-weight_file = '1708339063_epoch_55.pt'
+weight_file = '1708396971_epoch_2.pt'
 
 # 获取权重文件路径
 current_dir_path = Path(__file__).resolve().parent
@@ -58,7 +59,8 @@ def main():
 
     writer = SummaryWriter(comment=f'_predict_{weight_file}')
 
-    model = SimpleMLP().to(device)
+    # model = SimpleMLP().to(device)
+    model = LeNet5(10).to(device)
 
     model.load_state_dict(torch.load(model_weights_path))
 

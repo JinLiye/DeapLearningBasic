@@ -8,6 +8,7 @@ from pathlib import Path
 from torch.utils.tensorboard import SummaryWriter
 import time
 from mlp import SimpleMLP
+from cnn import SimpleCNN,LeNet5
 
 # 训练模型
 def train(model,device,train_loader,optimizer,epoch,loss_func,writer:SummaryWriter = None):
@@ -161,7 +162,8 @@ def main():
     test_loader = DataLoader(test_dataset, batch_size=1000, shuffle=False)
 
     # 实例化模型并移至设备
-    model = SimpleMLP().to(device)
+    # model = SimpleMLP().to(device)
+    model = LeNet5(10).to(device)
 
     # 定义损失函数，这里使用交叉熵
     loss_func = nn.CrossEntropyLoss()
@@ -173,13 +175,13 @@ def main():
     writer = SummaryWriter(comment="_train")
 
     # 记录模型结构
-    writer.add_graph(model,input_to_model=torch.rand(1,28,28))
+    writer.add_graph(model,input_to_model=torch.rand(1,1,28,28))
 
     weight_save_dir = current_dir_path / 'weights'
     weight_save_dir.mkdir(exist_ok=True)
 
     # 运行训练和测试
-    for epoch in range(1, 100):  # 总共训练5轮
+    for epoch in range(1, 10):  # 总共训练5轮
         train_loss = train(model, device, train_loader, optimizer, epoch, loss_func,writer)
 
         # 写入本轮的loss
