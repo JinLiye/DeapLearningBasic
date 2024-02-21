@@ -6,6 +6,7 @@ import numpy as np
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
+from torch.utils.tensorboard import SummaryWriter
 
 transform = transforms.Compose(
     [transforms.ToTensor(),
@@ -61,10 +62,88 @@ class Net(nn.Module):
         x = self.fc3(x)
         return x
     
+class AlexNet(nn.Module):
+    def __init__(self):
+        super(AlexNet,self).__init__()
+        self.conv1 = nn.Sequential(
+            nn.Conv2d(
+                in_channels=3,
+                out_channels=48,
+                kernel_size=5,
+                stride=1,
+                padding=2,
+            ),
+            nn.ReLU(),
+            nn.MaxPool2d(2),
+        )
+
+        self.conv2 = nn.Sequential(
+            nn.Conv2d(
+                in_channels=48,
+                out_channels=96,
+                kernel_size=3,
+                stride=1,
+                padding=1,
+            ),
+            nn.ReLU(),
+            nn.MaxPool2d(2),
+        )
+
+        self.conv3 = nn.Sequential(
+            nn.Conv2d(
+                in_channels=96,
+                out_channels=128,
+                kernel_size=3,
+                stride=1,
+                padding=1,
+            ),
+            nn.ReLU(),
+            nn.Conv2d(
+                in_channels=128,
+                out_channels=128,
+                kernel_size=3,
+                stride=1,
+                padding=1,
+            ),
+            nn.ReLU(),
+            nn.Conv2d(
+                in_channels=128,
+                out_channels=64,
+                kernel_size=3,
+                stride=1,
+                padding=1,
+            ),
+            nn.ReLU(),
+            nn.MaxPool2d(2),
+        )
+
+        self.f1 = nn.Sequential(
+            nn.Linear(4*4*64,512),
+            nn.Linear(512,1024),
+            nn.Linear(1024,10),
+        )
+    def forward(self,x):
+        x = self.conv1(x)
+        x = self.conv2(x)
+        x = self.conv3(x)
+        x = torch.flatten(x, 1)
+        x = self.f1(x)
+
+        return x
+
+    
 def main():
-    net = Net()
+
+    writer = SummaryWriter(comment="_train")
+
+
+    net = AlexNet()
+    writer.add_graph(net,input_to_model=torch.rand(1,3,32,32))
+
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
+    optimizer = optim.SGD(net.parameters(), lr=0.005, momentum=0.9)
+
+    tt = 0
     for epoch in range(2):  # loop over the dataset multiple times
         running_loss = 0.0
         for i, data in enumerate(trainloader, 0):
@@ -78,7 +157,12 @@ def main():
             outputs = net(inputs)
             loss = criterion(outputs, labels)
             loss.backward()
+            if epoch == 1:
+                optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
             optimizer.step()
+
+            tt = tt + 1
+            writer.add_scalar('loss',loss,tt)
 
             # print statistics
             running_loss += loss.item()
@@ -87,16 +171,16 @@ def main():
                 running_loss = 0.0
 
     print('Finished Training')
-    PATH = './weights/cifar_net.pth'
+    PATH = './weights/cifar_AlexNet.pth'
     torch.save(net.state_dict(), PATH)
 
 def test():
     dataiter = iter(testloader)
     images, labels = next(dataiter)
-    PATH = './weights/cifar_net.pth'
-    net = Net()
+    PATH = './weights/cifar_AlexNet.pth'
+    net = AlexNet()
     net.load_state_dict(torch.load(PATH))
-    
+
     # # print images
     # imshow(torchvision.utils.make_grid(images))
     # print('GroundTruth: ', ' '.join(f'{classes[labels[j]]:5s}' for j in range(4)))
